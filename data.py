@@ -82,8 +82,8 @@ def load_dataset(root, dataset, n_bins=10):
 
     if dataset == 'ADNI_tab':
         train_surv = ADNI_tab(path=os.path.join(root, 'Train_survival.csv'))
-        valid_surv = ADNI_tab(path=os.path.join(root, 'Train_survival.csv'))
-        test_surv = ADNI_tab(path=os.path.join(root, 'Train_survival.csv'))
+        valid_surv = ADNI_tab(path=os.path.join(root, 'Val_survival.csv'))
+        test_surv = ADNI_tab(path=os.path.join(root, 'Test_survival.csv'))
         time_steps = np.arange(0, 11, 1)
 
     elif dataset in ['METABRIC', 'SUPPORT', 'GBSG', 'FLCHAIN']:
@@ -138,10 +138,12 @@ def load_dataset(root, dataset, n_bins=10):
 
 
 class ADNI_tab(Dataset):
-    def __init__(self, path):
+    def __init__(self, path, name='ADNI_tab'):
         
         self.df = pd.read_csv(path)
-        self.features = ['AGE', 'ADAS11', 'ADAS13', 'CDRSB', 'FAQ', 'LDELTOTAL', 'MMSE', 'RAVLT_forgetting','RAVLT_immediate', 'RAVLT_perc_forgetting', '']
+        self.df.interpolate(inplace=True)
+        self.features = ['AGE', 'ADAS11', 'ADAS13', 'CDRSB', 'FAQ', 'LDELTOTAL', 'MMSE', 'RAVLT_forgetting','RAVLT_immediate', 'RAVLT_perc_forgetting']
+        self.name = name
 
     def __len__(self):
         return len(self.df)
@@ -150,7 +152,7 @@ class ADNI_tab(Dataset):
         row = self.df.iloc[idx]
         event = row['event']
         time = row['time']
-        X = row[self.features]
+        X = row[self.features].to_numpy(dtype=np.float32)
 
         return X, time, event, -1
 
