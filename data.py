@@ -71,7 +71,7 @@ def load_dataset(root, dataset, n_bins=10):
     '''
 
 
-    if 'ADNI' in dataset:
+    if dataset == 'ADNI':
         train_surv = ADNI_3D(dir_to_scans=os.path.join(root, f'ADNI/ADNI-T1/mni'), dir_to_tsv=os.path.join(root, f'ADNI/ADNI-T1/tabular_data'), dir_type='bids', 
                              mode='Train', n_label=2, name=dataset)
         valid_surv = ADNI_3D(dir_to_scans=os.path.join(root, f'ADNI/ADNI-T1/mni'), dir_to_tsv=os.path.join(root, f'ADNI/ADNI-T1/tabular_data'), dir_type='bids', 
@@ -79,6 +79,12 @@ def load_dataset(root, dataset, n_bins=10):
         test_surv  = ADNI_3D(dir_to_scans=os.path.join(root, f'ADNI/ADNI-T1/mni'), dir_to_tsv=os.path.join(root, f'ADNI/ADNI-T1/tabular_data'), dir_type='bids', 
                              mode='Test', n_label=2, name=dataset)
         time_steps = np.arange(0, 11, 1) # ADNI data will be loaded as [0, 60] in 6mo increments, and normalized to [0, 10]
+
+    if dataset == 'ADNI_tab':
+        train_surv = ADNI_tab(path=os.path.join(root, 'Train_survival.csv'))
+        valid_surv = ADNI_tab(path=os.path.join(root, 'Train_survival.csv'))
+        test_surv = ADNI_tab(path=os.path.join(root, 'Train_survival.csv'))
+        time_steps = np.arange(0, 11, 1)
 
     elif dataset in ['METABRIC', 'SUPPORT', 'GBSG', 'FLCHAIN']:
         if dataset == 'METABRIC': 
@@ -129,6 +135,24 @@ def load_dataset(root, dataset, n_bins=10):
         
     return train_surv, valid_surv, test_surv, time_steps
 
+
+
+class ADNI_tab(Dataset):
+    def __init__(self, path):
+        
+        self.df = pd.read_csv(path)
+        self.features = ['AGE', 'ADAS11', 'ADAS13', 'CDRSB', 'FAQ', 'LDELTOTAL', 'MMSE', 'RAVLT_forgetting','RAVLT_immediate', 'RAVLT_perc_forgetting', '']
+
+    def __len__(self):
+        return len(self.df)
+    
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        event = row['event']
+        time = row['time']
+        X = row[self.features]
+
+        return X, time, event, -1
 
 
 class PyCoxDataset(Dataset):
