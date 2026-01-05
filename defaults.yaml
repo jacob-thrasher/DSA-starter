@@ -13,6 +13,7 @@ train_params:
   loss_fn: 'DeepHit'
   reduction: 'mean'   # [sum, mean] --> Default: mean
   lambda: 1.0           # Ranking loss weight
+  accum_iter: 1       # Gradient accumulation iterations, default 1
 model:
   backbone: mlp  # [resnet18, resnet50, vit]
   in_dim: 10            # For nonimaging data 

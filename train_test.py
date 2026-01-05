@@ -4,25 +4,29 @@ from utils.survival_utils import get_metrics
 import torchvision.transforms as T
 import torchio.transforms as tio
 
-def train_step(model, dataloader, optim, loss_fn, device='cuda'):
+def train_step(model, dataloader, optim, loss_fn, accum_iter=1, device='cuda'):
   model.train()
 
   running_loss = 0
 
-  for X, t, e, y in dataloader:
+  for i, (X, t, e, y) in enumerate(dataloader):
     X = X.to(device)
     e = e.to(device)
     t = t.type(torch.int64).to(device)
 
-    optim.zero_grad()
 
     h, _ = model(X)
 
 
     loss = loss_fn(h, t, e)
     running_loss += loss.item()
+
+    loss /= accum_iter # Normalize for accumulation
     loss.backward()
-    optim.step()
+
+    if (i+1) % accum_iter == 0 or (i+1) == len(dataloader):
+      optim.zero_grad()
+      optim.step()
 
 
   return running_loss / len(dataloader)
