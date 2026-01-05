@@ -83,7 +83,7 @@ best_C = 0
 best_loss = 1e10
 for epoch in tqdm(range(cfg['train_params']['epochs'])):
 
-    train_loss = train_step(model, train_dataloader, optim, loss_fn, device)
+    train_loss = train_step(model, train_dataloader, optim, loss_fn, accum_iter=cfg['train_params']['accum_iter'], device=device)
     valid_loss, C = test_step(model, valid_dataloader, loss_fn, device, time_step=time_steps, method=paradigm)
 
     if np.isnan(train_loss): 
